@@ -120,7 +120,6 @@ const Login = () => {
 
           <div className="flex justify-center">
             <GoogleLogin
-              use_fedcm_for_prompt={true}
               onSuccess={async (credentialResponse) => {
                 if (credentialResponse.credential) {
                   setLoading(true);
