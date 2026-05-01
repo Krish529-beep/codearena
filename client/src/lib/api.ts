@@ -11,7 +11,16 @@ export const setAccessToken = (token: string | null) => {
   accessToken = token;
 };
 
+export const setRefreshToken = (token: string | null) => {
+  if (token) {
+    localStorage.setItem('refreshToken', token);
+  } else {
+    localStorage.removeItem('refreshToken');
+  }
+};
+
 export const getAccessToken = () => accessToken;
+export const getRefreshToken = () => localStorage.getItem('refreshToken');
 
 api.interceptors.request.use((config) => {
   if (accessToken) {
@@ -55,10 +64,12 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       return new Promise((resolve, reject) => {
+        const storedRefreshToken = getRefreshToken();
         axios
-          .post('/api/auth/refresh', {}, { withCredentials: true })
+          .post('/api/auth/refresh', { refreshToken: storedRefreshToken }, { withCredentials: true })
           .then(({ data }) => {
             setAccessToken(data.accessToken);
+            setRefreshToken(data.refreshToken);
             originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
             processQueue(null, data.accessToken);
             resolve(api(originalRequest));
@@ -66,6 +77,7 @@ api.interceptors.response.use(
           .catch((err) => {
             processQueue(err, null);
             setAccessToken(null);
+            setRefreshToken(null);
             if (!window.location.pathname.includes('/login')) {
               window.location.href = '/login';
             }

@@ -45,6 +45,7 @@ const register = async (req, res) => {
         avatar: user.avatar,
       },
       accessToken,
+      refreshToken,
     });
   } catch (error) {
     console.error('Register error:', error);
@@ -92,6 +93,7 @@ const login = async (req, res) => {
         streak: user.streak,
       },
       accessToken,
+      refreshToken,
     });
   } catch (error) {
     console.error('Login error:', error);
@@ -160,6 +162,7 @@ const googleAuth = async (req, res) => {
         streak: user.streak,
       },
       accessToken,
+      refreshToken,
     });
   } catch (error) {
     console.error('Google auth error:', error);
@@ -169,7 +172,7 @@ const googleAuth = async (req, res) => {
 
 const refresh = async (req, res) => {
   try {
-    const token = req.cookies?.refreshToken;
+    const token = req.cookies?.refreshToken || req.body?.refreshToken;
     if (!token) {
       return res.status(401).json({ message: 'Refresh token required' });
     }
@@ -206,6 +209,7 @@ const refresh = async (req, res) => {
         stats: user.stats,
         streak: user.streak,
       },
+      refreshToken: newRefreshToken,
     });
   } catch (error) {
     return res.status(401).json({ message: 'Invalid refresh token' });
@@ -214,10 +218,12 @@ const refresh = async (req, res) => {
 
 const logout = async (req, res) => {
   try {
-    const token = req.cookies?.refreshToken;
+    const token = req.cookies?.refreshToken || req.body?.refreshToken;
     if (token) {
-      const decoded = verifyRefreshToken(token);
-      await User.findByIdAndUpdate(decoded.userId, { refreshToken: '' });
+      try {
+        const decoded = verifyRefreshToken(token);
+        await User.findByIdAndUpdate(decoded.userId, { refreshToken: '' });
+      } catch {}
     }
 
     res.clearCookie('refreshToken');

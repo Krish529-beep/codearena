@@ -20,8 +20,8 @@ const groupSchema = z.object({
   description: z.string().max(500).optional(),
   type: z.enum(['public', 'private']).optional(),
   challengeSettings: z.object({
-    startDate: z.string().datetime().optional().nullable(),
-    endDate: z.string().datetime().optional().nullable(),
+    startDate: z.string().optional().nullable(),
+    endDate: z.string().optional().nullable(),
     target: z.number().min(0).optional(),
     isActive: z.boolean().optional(),
   }).optional(),

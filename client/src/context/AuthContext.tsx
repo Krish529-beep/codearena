@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
-import api, { setAccessToken } from '@/lib/api';
+import api, { setAccessToken, setRefreshToken, getRefreshToken } from '@/lib/api';
 import type { User } from '@/types';
 
 interface AuthContextType {
@@ -27,11 +27,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const refreshUser = useCallback(async () => {
     try {
-      const { data } = await api.post('/auth/refresh');
+      const storedRefreshToken = getRefreshToken();
+      const { data } = await api.post('/auth/refresh', { refreshToken: storedRefreshToken });
       setAccessToken(data.accessToken);
+      setRefreshToken(data.refreshToken);
       setUser(data.user);
     } catch {
       setAccessToken(null);
+      setRefreshToken(null);
       setUser(null);
     }
   }, []);
@@ -39,11 +42,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const init = async () => {
       try {
-        const { data } = await api.post('/auth/refresh');
+        const storedRefreshToken = getRefreshToken();
+        if (!storedRefreshToken) {
+          setLoading(false);
+          return;
+        }
+        const { data } = await api.post('/auth/refresh', { refreshToken: storedRefreshToken });
         setAccessToken(data.accessToken);
+        setRefreshToken(data.refreshToken);
         setUser(data.user);
       } catch {
         setAccessToken(null);
+        setRefreshToken(null);
         setUser(null);
       } finally {
         setLoading(false);
@@ -55,26 +65,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async (email: string, password: string) => {
     const { data } = await api.post('/auth/login', { email, password });
     setAccessToken(data.accessToken);
+    setRefreshToken(data.refreshToken);
     setUser(data.user);
   };
 
   const register = async (name: string, email: string, password: string) => {
     const { data } = await api.post('/auth/register', { name, email, password });
     setAccessToken(data.accessToken);
+    setRefreshToken(data.refreshToken);
     setUser(data.user);
   };
 
   const googleLogin = async (credential: string) => {
     const { data } = await api.post('/auth/google', { credential });
     setAccessToken(data.accessToken);
+    setRefreshToken(data.refreshToken);
     setUser(data.user);
   };
 
   const logout = async () => {
     try {
-      await api.post('/auth/logout');
+      const storedRefreshToken = getRefreshToken();
+      await api.post('/auth/logout', { refreshToken: storedRefreshToken });
     } catch {}
     setAccessToken(null);
+    setRefreshToken(null);
     setUser(null);
   };
 
