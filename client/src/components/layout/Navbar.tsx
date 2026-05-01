@@ -1,8 +1,9 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { motion } from 'framer-motion';
-import { LogOut, Trophy, LayoutDashboard, Users, Zap, Menu, X } from 'lucide-react';
+import { LogOut, Trophy, LayoutDashboard, Users, Menu, X } from 'lucide-react';
 import { useState } from 'react';
+import BrandMark from '@/components/branding/BrandMark';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -32,9 +33,7 @@ const Navbar = () => {
       <div className="page-shell px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link to={user ? '/dashboard' : '/'} className="flex min-w-0 items-center gap-2 group">
-            <div className="w-8 h-8 flex items-center justify-center">
-              <Zap className="w-6 h-6 text-white" fill="white" />
-            </div>
+            <BrandMark className="h-8 w-8" compact />
             <span className="truncate text-lg font-bold text-white tracking-tight">CodeArena</span>
           </Link>
 

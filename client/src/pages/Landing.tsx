@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Zap, Trophy, Users, TrendingUp, Flame, BarChart3, ArrowRight } from 'lucide-react';
+import { Trophy, Users, TrendingUp, Flame, BarChart3, ArrowRight } from 'lucide-react';
+import BrandMark from '@/components/branding/BrandMark';
 
 const Landing = () => {
   const features = [
@@ -30,7 +31,7 @@ const Landing = () => {
       description: 'Beautiful charts, heatmaps, and breakdowns of your solving patterns.',
     },
     {
-      icon: <Zap className="w-5 h-5" />,
+      icon: <BrandMark className="h-10 w-10" compact />,
       title: 'Real-Time Updates',
       description: 'See leaderboard changes live as your group members solve problems.',
     },
@@ -52,7 +53,7 @@ const Landing = () => {
             transition={{ duration: 0.6 }}
           >
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-zinc-800 bg-zinc-900 text-xs font-medium text-zinc-300 mb-8 tracking-wide">
-              <Zap className="w-3.5 h-3.5" />
+              <BrandMark className="h-4 w-4 rounded-md" compact />
               <span>GAMIFIED LEETCODE TRACKING</span>
             </div>
 
@@ -138,7 +139,7 @@ const Landing = () => {
                 transition={{ delay: index * 0.1 }}
                 className="card p-6 flex flex-col items-start text-left"
               >
-                <div className="w-10 h-10 rounded border border-zinc-800 bg-zinc-900 flex items-center justify-center mb-5 text-white">
+                <div className="mb-5 flex h-10 w-10 items-center justify-center rounded border border-zinc-800 bg-zinc-900 text-white">
                   {feature.icon}
                 </div>
                 <h3 className="text-lg font-semibold text-white mb-2">{feature.title}</h3>
@@ -178,9 +179,7 @@ const Landing = () => {
       <footer className="border-t border-zinc-800 py-8 px-4 z-10 bg-zinc-950">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 flex items-center justify-center">
-              <Zap className="w-4 h-4 text-white" fill="white" />
-            </div>
+            <BrandMark className="h-6 w-6 rounded-lg" compact />
             <span className="text-sm font-bold text-white tracking-tight">CodeArena</span>
           </div>
           <p className="text-sm text-zinc-500 font-light">© 2025 CodeArena. All rights reserved.</p>

@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
-import { Mail, Lock, Eye, EyeOff, Zap } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { GoogleLogin } from '@react-oauth/google';
 import type { User } from '@/types';
+import BrandMark from '@/components/branding/BrandMark';
 
 const Login = () => {
   const { login, googleLogin } = useAuth();
@@ -48,9 +49,7 @@ const Login = () => {
       >
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 mb-4">
-            <div className="w-10 h-10 rounded-xl gradient-brand flex items-center justify-center">
-              <Zap className="w-6 h-6 text-white" />
-            </div>
+            <BrandMark className="h-12 w-12" />
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
           <p className="text-gray-400">Sign in to continue your coding journey</p>
