@@ -76,16 +76,15 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: 'Internal server error' });
 });
 
-const PORT = process.env.PORT || 5000;
-
 const start = async () => {
   await connectDB();
   initRedis();
   initSocket(io);
   startCronJobs(io);
 
+  const PORT = process.env.PORT || 5000;
   server.listen(PORT, () => {
-    console.log(`🚀 CodeArena server running on port ${PORT}`);
+    console.log(`🚀 Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
   });
 };
 
