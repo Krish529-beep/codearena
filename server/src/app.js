@@ -21,6 +21,7 @@ const groupRoutes = require('./routes/group.routes');
 const leaderboardRoutes = require('./routes/leaderboard.routes');
 
 const app = express();
+app.set('trust proxy', 1); // Required for Hugging Face/Proxies
 const server = http.createServer(app);
 
 const io = new Server(server, {
@@ -60,7 +61,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // Serve static files in production
-if (process.env.NODE_ENV === 'production') {
+if (process.env.NODE_ENV === 'production' || process.env.PORT === '7860') {
   const clientDistPath = path.join(__dirname, '../../client/dist');
   app.use(express.static(clientDistPath));
 
