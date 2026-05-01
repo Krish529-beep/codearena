@@ -25,6 +25,7 @@ const getGroupLeaderboard = async (req, res) => {
       .filter(m => m.user && m.user.stats)
       .map(m => {
         const solvedInGroup = Math.max(0, m.user.stats.totalSolved - (m.initialSolvedCount || 0));
+        const pointsInGroup = Math.max(0, m.user.stats.totalPoints - (m.initialPointsCount || 0));
         const progress = challenge?.target > 0 
           ? Math.min(100, Math.round((solvedInGroup / challenge.target) * 100)) 
           : 0;
@@ -36,6 +37,7 @@ const getGroupLeaderboard = async (req, res) => {
           leetcodeUsername: m.user.leetcodeUsername,
           totalSolved: m.user.stats.totalSolved,
           solvedInGroup,
+          pointsInGroup,
           progress,
           easySolved: m.user.stats.easySolved,
           mediumSolved: m.user.stats.mediumSolved,
@@ -48,9 +50,10 @@ const getGroupLeaderboard = async (req, res) => {
 
     if (sortBy === 'solved') {
       leaderboard.sort((a, b) => b.totalSolved - a.totalSolved);
-    } else if (isChallengeActive || sortBy === 'progress') {
-      // Default sort by progress if challenge is active
-      leaderboard.sort((a, b) => b.solvedInGroup - a.solvedInGroup || b.progress - a.progress);
+    } else if (isChallengeActive || sortBy === 'progress' || sortBy === 'points') {
+      // Default sort by progress/pointsInGroup if challenge is active
+      const sortField = sortBy === 'solved' ? 'solvedInGroup' : 'pointsInGroup';
+      leaderboard.sort((a, b) => b[sortField] - a[sortField] || b.progress - a.progress);
     } else {
       leaderboard.sort((a, b) => b.totalPoints - a.totalPoints);
     }

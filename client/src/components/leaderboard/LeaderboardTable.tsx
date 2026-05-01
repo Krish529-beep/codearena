@@ -84,9 +84,9 @@ const LeaderboardTable = ({ entries, currentUserId, sortBy }: LeaderboardTablePr
                   ) : (
                     <>
                       <p className={`text-sm font-bold ${sortBy === 'points' ? 'text-brand-300' : 'text-gray-300'}`}>
-                        {entry.totalPoints}
+                        {entry.pointsInGroup > 0 ? `+${entry.pointsInGroup}` : entry.totalPoints}
                       </p>
-                      <p className="text-xs text-gray-500">Points</p>
+                      <p className="text-xs text-gray-500">{entry.pointsInGroup > 0 ? 'In Group' : 'Points'}</p>
                     </>
                   )}
                 </div>

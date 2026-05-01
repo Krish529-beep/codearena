@@ -76,6 +76,7 @@ export interface LeaderboardEntry {
   leetcodeUsername: string;
   totalSolved: number;
   solvedInGroup: number;
+  pointsInGroup: number;
   progress: number;
   easySolved: number;
   mediumSolved: number;

@@ -15,7 +15,8 @@ const createGroup = async (req, res) => {
       members: [{ 
         user: req.user._id, 
         joinedAt: new Date(),
-        initialSolvedCount: req.user.stats?.totalSolved || 0
+        initialSolvedCount: req.user.stats?.totalSolved || 0,
+        initialPointsCount: req.user.stats?.totalPoints || 0
       }],
     };
 
@@ -129,7 +130,8 @@ const joinGroup = async (req, res) => {
     group.members.push({ 
       user: req.user._id, 
       joinedAt: new Date(),
-      initialSolvedCount: req.user.stats?.totalSolved || 0
+      initialSolvedCount: req.user.stats?.totalSolved || 0,
+      initialPointsCount: req.user.stats?.totalPoints || 0
     });
     await group.save();
 
@@ -182,7 +184,8 @@ const joinByCode = async (req, res) => {
     group.members.push({ 
       user: req.user._id, 
       joinedAt: new Date(),
-      initialSolvedCount: req.user.stats?.totalSolved || 0
+      initialSolvedCount: req.user.stats?.totalSolved || 0,
+      initialPointsCount: req.user.stats?.totalPoints || 0
     });
     await group.save();
 
@@ -285,6 +288,7 @@ const updateGroup = async (req, res) => {
         for (let member of group.members) {
           const userObj = populatedGroup.members.find(m => m.user._id.toString() === member.user.toString())?.user;
           member.initialSolvedCount = userObj?.stats?.totalSolved || 0;
+          member.initialPointsCount = userObj?.stats?.totalPoints || 0;
         }
       }
     }
