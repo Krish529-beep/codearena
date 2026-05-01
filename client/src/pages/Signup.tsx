@@ -140,10 +140,17 @@ const Signup = () => {
 
           <div className="flex justify-center">
             <GoogleLogin
-              onSuccess={(credentialResponse) => {
+              onSuccess={async (credentialResponse) => {
                 if (credentialResponse.credential) {
-                  googleLogin(credentialResponse.credential);
-                  navigate('/onboarding');
+                  setLoading(true);
+                  try {
+                    await googleLogin(credentialResponse.credential);
+                    navigate('/onboarding');
+                  } catch (err) {
+                    setError('Google Signup Failed on server');
+                  } finally {
+                    setLoading(false);
+                  }
                 }
               }}
               onError={() => {
