@@ -32,7 +32,11 @@ const io = new Server(server, {
   },
 });
 
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false,
+  frameguard: false, // Required for Hugging Face iframe
+}));
 app.use(cors({
   origin: process.env.CLIENT_URL || 'http://localhost:5173',
   credentials: true,
@@ -60,15 +64,16 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Serve static files in production
+// Serve static files and handle SPA routing
 if (process.env.NODE_ENV === 'production' || process.env.PORT === '7860') {
   const clientDistPath = path.join(__dirname, '../../client/dist');
   app.use(express.static(clientDistPath));
 
-  app.get('(.*)', (req, res) => {
+  app.use((req, res, next) => {
     if (!req.path.startsWith('/api')) {
-      res.sendFile(path.resolve(clientDistPath, 'index.html'));
+      return res.sendFile(path.resolve(clientDistPath, 'index.html'));
     }
+    next();
   });
 }
 
