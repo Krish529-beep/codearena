@@ -65,7 +65,7 @@ if (process.env.NODE_ENV === 'production' || process.env.PORT === '7860') {
   const clientDistPath = path.join(__dirname, '../../client/dist');
   app.use(express.static(clientDistPath));
 
-  app.get('*', (req, res) => {
+  app.get('(.*)', (req, res) => {
     if (!req.path.startsWith('/api')) {
       res.sendFile(path.resolve(clientDistPath, 'index.html'));
     }
