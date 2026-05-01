@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useSocket } from '@/context/SocketContext';
 import LeaderboardTable from '@/components/leaderboard/LeaderboardTable';
 import {
-  Users, Globe, Lock, Copy, Check, LogOut, Trash2, Loader2, ArrowLeft, Trophy,
+  Users, Globe, Lock, Copy, Check, LogOut, Trash2, Loader2, ArrowLeft, Trophy, Settings,
 } from 'lucide-react';
 import type { Group, LeaderboardEntry } from '@/types';
 
@@ -21,10 +21,45 @@ const GroupDetail = () => {
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<'points' | 'solved'>('points');
   const [copied, setCopied] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [updating, setUpdating] = useState(false);
+
+  // Challenge settings form state
+  const [challengeTarget, setChallengeTarget] = useState(0);
+  const [challengeEnd, setChallengeEnd] = useState('');
+  const [challengeActive, setChallengeActive] = useState(false);
 
   useEffect(() => {
     loadGroupData();
   }, [id, sortBy]);
+
+  useEffect(() => {
+    if (group) {
+      setChallengeTarget(group.challengeSettings?.target || 0);
+      setChallengeActive(group.challengeSettings?.isActive || false);
+      setChallengeEnd(group.challengeSettings?.endDate ? new Date(group.challengeSettings.endDate).toISOString().split('T')[0] : '');
+    }
+  }, [group]);
+
+  const handleUpdateChallenge = async () => {
+    setUpdating(true);
+    try {
+      await api.put(`/groups/${id}`, {
+        challengeSettings: {
+          target: challengeTarget,
+          endDate: challengeEnd || null,
+          isActive: challengeActive,
+          startDate: challengeActive && !group?.challengeSettings?.isActive ? new Date() : group?.challengeSettings?.startDate
+        }
+      });
+      await loadGroupData();
+      setShowSettings(false);
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to update challenge');
+    } finally {
+      setUpdating(false);
+    }
+  };
 
   useEffect(() => {
     if (!socket || !id) return;
@@ -179,16 +214,93 @@ const GroupDetail = () => {
               )}
 
               {isAdmin && (
-                <button
-                  onClick={handleDelete}
-                  className="rounded p-2 text-zinc-500 transition-all hover:bg-red-400/10 hover:text-red-400"
-                  title="Delete Group"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setShowSettings(!showSettings)}
+                    className={`rounded p-2 transition-all ${
+                      showSettings ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:bg-zinc-800 hover:text-white'
+                    }`}
+                    title="Group Settings"
+                  >
+                    <Settings className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={handleDelete}
+                    className="rounded p-2 text-zinc-500 transition-all hover:bg-red-400/10 hover:text-red-400"
+                    title="Delete Group"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
               )}
             </div>
           </div>
+
+          {showSettings && isAdmin && (
+            <motion.div 
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              className="mt-6 space-y-4 border-t border-zinc-800 pt-6"
+            >
+              <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-500">Challenge Settings</h3>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-zinc-400">Target Problems</label>
+                  <input
+                    type="number"
+                    value={challengeTarget}
+                    onChange={(e) => setChallengeTarget(parseInt(e.target.value) || 0)}
+                    className="w-full rounded border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-sm text-white focus:border-zinc-700 outline-none"
+                    placeholder="e.g. 50"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-zinc-400">End Date (Optional)</label>
+                  <input
+                    type="date"
+                    value={challengeEnd}
+                    onChange={(e) => setChallengeEnd(e.target.value)}
+                    className="w-full rounded border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-sm text-white focus:border-zinc-700 outline-none color-scheme-dark"
+                  />
+                </div>
+                <div className="flex items-end pb-1">
+                  <label className="flex cursor-pointer items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={challengeActive}
+                      onChange={(e) => setChallengeActive(e.target.checked)}
+                      className="h-4 w-4 rounded border-zinc-800 bg-zinc-900 text-emerald-500 focus:ring-0 focus:ring-offset-0"
+                    />
+                    <span className="text-sm font-medium text-zinc-300">Challenge Active</span>
+                  </label>
+                </div>
+                <div className="flex items-end">
+                  <button
+                    onClick={handleUpdateChallenge}
+                    disabled={updating}
+                    className="btn-primary w-full py-1.5 text-sm"
+                  >
+                    {updating ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : 'Save Settings'}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {group.challengeSettings?.isActive && (
+            <div className="mt-6 flex flex-wrap items-center gap-4 rounded-lg bg-emerald-500/10 p-4 border border-emerald-500/20">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400">
+                <Trophy className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-emerald-400 uppercase tracking-wide">Active Challenge</p>
+                <p className="text-xs text-emerald-500/70">
+                  Target: <span className="font-bold text-emerald-400">{group.challengeSettings.target} problems</span> 
+                  {group.challengeSettings.endDate && ` • Ends: ${new Date(group.challengeSettings.endDate).toLocaleDateString()}`}
+                </p>
+              </div>
+            </div>
+          )}
 
           {group.description && (
             <p className="mt-4 text-sm leading-relaxed text-zinc-400 font-light">{group.description}</p>

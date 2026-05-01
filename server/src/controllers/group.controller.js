@@ -12,7 +12,11 @@ const createGroup = async (req, res) => {
       description: description || '',
       type: type || 'public',
       admin: req.user._id,
-      members: [{ user: req.user._id, joinedAt: new Date() }],
+      members: [{ 
+        user: req.user._id, 
+        joinedAt: new Date(),
+        initialSolvedCount: req.user.stats?.totalSolved || 0
+      }],
     };
 
     if (type === 'private') {
@@ -122,7 +126,11 @@ const joinGroup = async (req, res) => {
       return res.status(400).json({ message: 'Group is full' });
     }
 
-    group.members.push({ user: req.user._id, joinedAt: new Date() });
+    group.members.push({ 
+      user: req.user._id, 
+      joinedAt: new Date(),
+      initialSolvedCount: req.user.stats?.totalSolved || 0
+    });
     await group.save();
 
     await User.findByIdAndUpdate(req.user._id, {
@@ -171,7 +179,11 @@ const joinByCode = async (req, res) => {
       return res.status(400).json({ message: 'Group is full' });
     }
 
-    group.members.push({ user: req.user._id, joinedAt: new Date() });
+    group.members.push({ 
+      user: req.user._id, 
+      joinedAt: new Date(),
+      initialSolvedCount: req.user.stats?.totalSolved || 0
+    });
     await group.save();
 
     await User.findByIdAndUpdate(req.user._id, {
@@ -240,6 +252,51 @@ const leaveGroup = async (req, res) => {
   }
 };
 
+const updateGroup = async (req, res) => {
+  try {
+    const { name, description, type, challengeSettings } = req.body;
+    const group = await Group.findById(req.params.id);
+
+    if (!group) {
+      return res.status(404).json({ message: 'Group not found' });
+    }
+
+    if (group.admin.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Only admin can update group settings' });
+    }
+
+    if (name) group.name = name;
+    if (description !== undefined) group.description = description;
+    if (type) group.type = type;
+
+    // Handle Challenge Mode logic
+    if (challengeSettings) {
+      const wasActive = group.challengeSettings?.isActive;
+      const nowActive = challengeSettings.isActive;
+
+      group.challengeSettings = {
+        ...group.challengeSettings?.toObject(),
+        ...challengeSettings
+      };
+
+      // If starting a NEW challenge, snapshot everyone's current stats
+      if (!wasActive && nowActive) {
+        const populatedGroup = await Group.findById(group._id).populate('members.user');
+        for (let member of group.members) {
+          const userObj = populatedGroup.members.find(m => m.user._id.toString() === member.user.toString())?.user;
+          member.initialSolvedCount = userObj?.stats?.totalSolved || 0;
+        }
+      }
+    }
+
+    await group.save();
+    res.json({ group });
+  } catch (error) {
+    console.error('Update group error:', error);
+    res.status(500).json({ message: 'Failed to update group' });
+  }
+};
+
 const deleteGroup = async (req, res) => {
   try {
     const group = await Group.findById(req.params.id);
@@ -277,6 +334,7 @@ module.exports = {
   createGroup,
   getGroups,
   getGroupById,
+  updateGroup,
   joinGroup,
   joinByCode,
   leaveGroup,

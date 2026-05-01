@@ -63,18 +63,32 @@ const LeaderboardTable = ({ entries, currentUserId, sortBy }: LeaderboardTablePr
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4 sm:ml-auto sm:min-w-[250px]">
+              <div className="grid grid-cols-3 gap-4 sm:ml-auto sm:min-w-[280px]">
                 <div className="text-left sm:text-right">
                   <p className={`text-sm font-bold ${sortBy === 'solved' ? 'text-accent-cyan' : 'text-gray-300'}`}>
-                    {entry.totalSolved}
+                    {entry.solvedInGroup > 0 ? `+${entry.solvedInGroup}` : entry.totalSolved}
                   </p>
-                  <p className="text-xs text-gray-500">Solved</p>
+                  <p className="text-xs text-gray-500">{entry.solvedInGroup > 0 ? 'In Group' : 'Solved'}</p>
                 </div>
-                <div className="text-left sm:text-right">
-                  <p className={`text-sm font-bold ${sortBy === 'points' ? 'text-brand-300' : 'text-gray-300'}`}>
-                    {entry.totalPoints}
-                  </p>
-                  <p className="text-xs text-gray-500">Points</p>
+                <div className="text-left sm:text-right min-w-[80px]">
+                  {entry.progress > 0 ? (
+                    <div className="space-y-1">
+                      <p className="text-sm font-bold text-emerald-400">{entry.progress}%</p>
+                      <div className="h-1 w-full overflow-hidden rounded-full bg-zinc-800">
+                        <div 
+                          className="h-full bg-emerald-500 transition-all duration-500" 
+                          style={{ width: `${entry.progress}%` }}
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <p className={`text-sm font-bold ${sortBy === 'points' ? 'text-brand-300' : 'text-gray-300'}`}>
+                        {entry.totalPoints}
+                      </p>
+                      <p className="text-xs text-gray-500">Points</p>
+                    </>
+                  )}
                 </div>
                 <div className="text-left sm:text-right">
                   <p className="text-sm font-bold text-orange-400">{entry.currentStreak}</p>

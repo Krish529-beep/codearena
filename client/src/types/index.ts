@@ -37,6 +37,12 @@ export interface Group {
     name: string;
     avatar: string;
   };
+  challengeSettings: {
+    startDate: string | null;
+    endDate: string | null;
+    target: number;
+    isActive: boolean;
+  };
   members: GroupMember[];
   memberCount?: number;
   maxMembers: number;
@@ -59,6 +65,7 @@ export interface GroupMember {
     streak: StreakData;
   };
   joinedAt: string;
+  initialSolvedCount: number;
 }
 
 export interface LeaderboardEntry {
@@ -68,6 +75,8 @@ export interface LeaderboardEntry {
   avatar: string;
   leetcodeUsername: string;
   totalSolved: number;
+  solvedInGroup: number;
+  progress: number;
   easySolved: number;
   mediumSolved: number;
   hardSolved: number;
