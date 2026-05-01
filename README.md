@@ -2,7 +2,7 @@
 title: CodeArena
 emoji: 🚀
 colorFrom: green
-colorTo: zinc
+colorTo: blue
 sdk: docker
 pinned: false
 ---
