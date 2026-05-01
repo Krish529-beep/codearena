@@ -35,6 +35,7 @@ const io = new Server(server, {
 app.use(helmet({
   contentSecurityPolicy: false,
   crossOriginEmbedderPolicy: false,
+  crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
   frameguard: false, // Required for Hugging Face iframe
 }));
 app.use(cors({
