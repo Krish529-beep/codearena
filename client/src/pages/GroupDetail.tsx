@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useSocket } from '@/context/SocketContext';
 import LeaderboardTable from '@/components/leaderboard/LeaderboardTable';
 import {
-  Users, Globe, Lock, Copy, Check, LogOut, Trash2, Loader2, ArrowLeft, Trophy, Settings,
+  Users, Globe, Lock, Copy, Check, LogOut, Trash2, Loader2, ArrowLeft, Trophy, Cog,
 } from 'lucide-react';
 import type { Group, LeaderboardEntry } from '@/types';
 
@@ -217,12 +217,12 @@ const GroupDetail = () => {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setShowSettings(!showSettings)}
-                    className={`rounded p-2 transition-all ${
-                      showSettings ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:bg-zinc-800 hover:text-white'
+                    className={`rounded-lg p-2.5 transition-all shadow-sm ${
+                      showSettings ? 'bg-brand-500 text-white' : 'bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-white border border-zinc-800'
                     }`}
                     title="Group Settings"
                   >
-                    <Settings className="h-4 w-4" />
+                    <Cog className="h-4 w-4" />
                   </button>
                   <button
                     onClick={handleDelete}
