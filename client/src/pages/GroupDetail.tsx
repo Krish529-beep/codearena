@@ -148,8 +148,8 @@ const GroupDetail = () => {
 
   if (!group) return null;
 
-  const isAdmin = group.admin._id === user?.id;
-  const isMember = group.members.some((m) => m.user._id === user?.id);
+  const isAdmin = group.admin._id.toString() === user?.id?.toString();
+  const isMember = group.members.some((m) => m.user._id.toString() === user?.id?.toString());
 
   return (
     <div className="min-h-screen px-4 pb-10 pt-24 sm:px-6 lg:px-8 bg-zinc-950">
