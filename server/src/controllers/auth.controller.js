@@ -6,9 +6,56 @@ const {
   verifyRefreshToken,
 } = require('../utils/jwt');
 
+const cookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'lax',
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+};
+
+const buildAuthUser = (user) => ({
+  id: user._id,
+  name: user.name,
+  email: user.email,
+  onboarded: user.onboarded,
+  avatar: user.avatar,
+  leetcodeUsername: user.leetcodeUsername,
+  stats: user.stats,
+  streak: user.streak,
+  groups: user.groups || [],
+  lastSyncedAt: user.lastSyncedAt || null,
+  submissionCalendar: user.submissionCalendar || '{}',
+});
+
+const sendAuthResponse = async (res, user, message, statusCode = 200) => {
+  const accessToken = generateAccessToken(user._id);
+  const refreshToken = generateRefreshToken(user._id);
+
+  user.refreshToken = refreshToken;
+  await user.save();
+
+  res.cookie('refreshToken', refreshToken, cookieOptions);
+
+  return res.status(statusCode).json({
+    message,
+    user: buildAuthUser(user),
+    accessToken,
+  });
+};
+
+const clearRefreshCookie = (res) => {
+  res.clearCookie('refreshToken', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+  });
+};
+
 const register = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const name = req.body.name.trim();
+    const email = req.body.email.trim().toLowerCase();
+    const { password } = req.body;
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -22,40 +69,17 @@ const register = async (req, res) => {
       password: hashedPassword,
     });
 
-    const accessToken = generateAccessToken(user._id);
-    const refreshToken = generateRefreshToken(user._id);
-
-    user.refreshToken = refreshToken;
-    await user.save();
-
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
-
-    res.status(201).json({
-      message: 'Registration successful',
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        onboarded: user.onboarded,
-        avatar: user.avatar,
-      },
-      accessToken,
-      refreshToken,
-    });
+    return sendAuthResponse(res, user, 'Registration successful', 201);
   } catch (error) {
     console.error('Register error:', error);
-    res.status(500).json({ message: 'Registration failed' });
+    return res.status(500).json({ message: 'Registration failed' });
   }
 };
 
 const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const email = req.body.email.trim().toLowerCase();
+    const { password } = req.body;
 
     const user = await User.findOne({ email });
     if (!user || !user.password) {
@@ -67,37 +91,10 @@ const login = async (req, res) => {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    const accessToken = generateAccessToken(user._id);
-    const refreshToken = generateRefreshToken(user._id);
-
-    user.refreshToken = refreshToken;
-    await user.save();
-
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
-
-    res.json({
-      message: 'Login successful',
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        onboarded: user.onboarded,
-        avatar: user.avatar,
-        leetcodeUsername: user.leetcodeUsername,
-        stats: user.stats,
-        streak: user.streak,
-      },
-      accessToken,
-      refreshToken,
-    });
+    return sendAuthResponse(res, user, 'Login successful');
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ message: 'Login failed' });
+    return res.status(500).json({ message: 'Login failed' });
   }
 };
 
@@ -110,16 +107,26 @@ const googleAuth = async (req, res) => {
       return res.status(501).json({ message: 'Google OAuth not configured' });
     }
 
-    const client = new OAuth2Client(clientId);
     const { credential } = req.body;
+    if (!credential || typeof credential !== 'string') {
+      return res.status(400).json({ message: 'Google credential is required' });
+    }
 
+    const client = new OAuth2Client(clientId);
     const ticket = await client.verifyIdToken({
       idToken: credential,
       audience: clientId,
     });
 
     const payload = ticket.getPayload();
-    const { sub: googleId, email, name, picture } = payload;
+    if (!payload?.email || !payload?.sub) {
+      return res.status(400).json({ message: 'Invalid Google account payload' });
+    }
+
+    const googleId = payload.sub;
+    const email = payload.email.trim().toLowerCase();
+    const name = payload.name?.trim() || email.split('@')[0];
+    const picture = payload.picture || '';
 
     let user = await User.findOne({ $or: [{ googleId }, { email }] });
 
@@ -128,45 +135,32 @@ const googleAuth = async (req, res) => {
         name,
         email,
         googleId,
-        avatar: picture || '',
+        avatar: picture,
       });
-    } else if (!user.googleId) {
-      user.googleId = googleId;
-      if (!user.avatar && picture) user.avatar = picture;
-      await user.save();
+    } else {
+      let didChange = false;
+      if (!user.googleId) {
+        user.googleId = googleId;
+        didChange = true;
+      }
+      if (!user.avatar && picture) {
+        user.avatar = picture;
+        didChange = true;
+      }
+      if (didChange) {
+        await user.save();
+      }
     }
 
-    const accessToken = generateAccessToken(user._id);
-    const refreshToken = generateRefreshToken(user._id);
-
-    user.refreshToken = refreshToken;
-    await user.save();
-
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
-
-    res.json({
-      message: 'Google auth successful',
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        onboarded: user.onboarded,
-        avatar: user.avatar,
-        leetcodeUsername: user.leetcodeUsername,
-        stats: user.stats,
-        streak: user.streak,
-      },
-      accessToken,
-      refreshToken,
-    });
+    return sendAuthResponse(res, user, 'Google auth successful');
   } catch (error) {
     console.error('Google auth error:', error);
-    res.status(500).json({ message: 'Google authentication failed' });
+
+    if (error.message?.includes('Token used too late') || error.message?.includes('Wrong number of segments')) {
+      return res.status(400).json({ message: 'Invalid Google credential' });
+    }
+
+    return res.status(500).json({ message: 'Google authentication failed' });
   }
 };
 
@@ -181,37 +175,13 @@ const refresh = async (req, res) => {
     const user = await User.findById(decoded.userId);
 
     if (!user || user.refreshToken !== token) {
+      clearRefreshCookie(res);
       return res.status(401).json({ message: 'Invalid refresh token' });
     }
 
-    const accessToken = generateAccessToken(user._id);
-    const newRefreshToken = generateRefreshToken(user._id);
-
-    user.refreshToken = newRefreshToken;
-    await user.save();
-
-    res.cookie('refreshToken', newRefreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
-
-    res.json({
-      accessToken,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        onboarded: user.onboarded,
-        avatar: user.avatar,
-        leetcodeUsername: user.leetcodeUsername,
-        stats: user.stats,
-        streak: user.streak,
-      },
-      refreshToken: newRefreshToken,
-    });
-  } catch (error) {
+    return sendAuthResponse(res, user, 'Session refreshed');
+  } catch {
+    clearRefreshCookie(res);
     return res.status(401).json({ message: 'Invalid refresh token' });
   }
 };
@@ -226,11 +196,11 @@ const logout = async (req, res) => {
       } catch {}
     }
 
-    res.clearCookie('refreshToken');
-    res.json({ message: 'Logged out successfully' });
+    clearRefreshCookie(res);
+    return res.json({ message: 'Logged out successfully' });
   } catch {
-    res.clearCookie('refreshToken');
-    res.json({ message: 'Logged out' });
+    clearRefreshCookie(res);
+    return res.json({ message: 'Logged out' });
   }
 };
 

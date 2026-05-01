@@ -17,9 +17,13 @@ const loginSchema = z.object({
   password: z.string().min(1),
 });
 
+const googleSchema = z.object({
+  credential: z.string().min(1),
+});
+
 router.post('/register', authLimiter, validate(registerSchema), register);
 router.post('/login', authLimiter, validate(loginSchema), login);
-router.post('/google', authLimiter, googleAuth);
+router.post('/google', authLimiter, validate(googleSchema), googleAuth);
 router.post('/refresh', refresh);
 router.post('/logout', logout);
 

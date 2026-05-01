@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
 import { Mail, Lock, Eye, EyeOff, User, Zap } from 'lucide-react';
 import { GoogleLogin } from '@react-oauth/google';
+import type { User as AuthUser } from '@/types';
 
 const Signup = () => {
   const { register, googleLogin } = useAuth();
@@ -15,14 +16,18 @@ const Signup = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const navigateAfterAuth = (nextUser: AuthUser) => {
+    navigate(nextUser.onboarded ? '/dashboard' : '/onboarding', { replace: true });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
     try {
-      await register(name, email, password);
-      navigate('/onboarding');
+      const nextUser = await register(name, email, password);
+      navigateAfterAuth(nextUser);
     } catch (err: any) {
       const msg = err.response?.data?.errors?.[0]?.message || err.response?.data?.message || 'Registration failed.';
       setError(msg);
@@ -140,12 +145,13 @@ const Signup = () => {
 
           <div className="flex justify-center">
             <GoogleLogin
+              ux_mode="popup"
               onSuccess={async (credentialResponse) => {
                 if (credentialResponse.credential) {
                   setLoading(true);
                   try {
-                    await googleLogin(credentialResponse.credential);
-                    navigate('/onboarding');
+                    const nextUser = await googleLogin(credentialResponse.credential);
+                    navigateAfterAuth(nextUser);
                   } catch (err) {
                     setError('Google Signup Failed on server');
                   } finally {
@@ -154,10 +160,12 @@ const Signup = () => {
                 }
               }}
               onError={() => {
-                setError('Google Signup Failed');
+                setError('Google Signup failed. Please try again.');
               }}
               theme="filled_black"
               shape="pill"
+              text="signup_with"
+              width="280"
             />
           </div>
 

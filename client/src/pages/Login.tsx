@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
 import { Mail, Lock, Eye, EyeOff, Zap } from 'lucide-react';
 import { GoogleLogin } from '@react-oauth/google';
+import type { User } from '@/types';
 
 const Login = () => {
   const { login, googleLogin } = useAuth();
@@ -14,14 +15,18 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const navigateAfterAuth = (nextUser: User) => {
+    navigate(nextUser.onboarded ? '/dashboard' : '/onboarding', { replace: true });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
     try {
-      await login(email, password);
-      navigate('/dashboard');
+      const nextUser = await login(email, password);
+      navigateAfterAuth(nextUser);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Login failed. Please try again.');
     } finally {
@@ -120,12 +125,13 @@ const Login = () => {
 
           <div className="flex justify-center">
             <GoogleLogin
+              ux_mode="popup"
               onSuccess={async (credentialResponse) => {
                 if (credentialResponse.credential) {
                   setLoading(true);
                   try {
-                    await googleLogin(credentialResponse.credential);
-                    navigate('/dashboard');
+                    const nextUser = await googleLogin(credentialResponse.credential);
+                    navigateAfterAuth(nextUser);
                   } catch (err) {
                     setError('Google Login Failed on server');
                   } finally {
@@ -134,10 +140,12 @@ const Login = () => {
                 }
               }}
               onError={() => {
-                setError('Google Login Failed');
+                setError('Google Login failed. Please try again.');
               }}
               theme="filled_black"
               shape="pill"
+              text="signin_with"
+              width="280"
             />
           </div>
 
