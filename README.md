@@ -1,8 +1,8 @@
 ---
 title: CodeArena
 emoji: ⚡
-colorFrom: zinc
-colorTo: black
+colorFrom: blue
+colorTo: purple
 sdk: docker
 pinned: false
 ---
