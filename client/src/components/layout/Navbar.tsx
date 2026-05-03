@@ -74,11 +74,17 @@ const Navbar = () => {
                 </button>
               </>
             ) : (
-              <div className="flex items-center gap-2">
-                <Link to="/login" className="btn-secondary py-1.5 px-4 text-sm rounded-md">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <Link
+                  to="/login"
+                  className="btn-secondary py-1.5 px-3 sm:px-4 text-xs sm:text-sm rounded-md"
+                >
                   Log in
                 </Link>
-                <Link to="/signup" className="btn-primary py-1.5 px-4 text-sm rounded-md">
+                <Link
+                  to="/signup"
+                  className="btn-primary py-1.5 px-3 sm:px-4 text-xs sm:text-sm rounded-md"
+                >
                   Sign up
                 </Link>
               </div>

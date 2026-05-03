@@ -1,12 +1,3 @@
----
-title: CodeArena
-emoji: ⚡
-colorFrom: zinc
-colorTo: black
-sdk: docker
-pinned: false
----
-
 # ⚡ CodeArena
 ### The Ultimate Gamified Dashboard for LeetCode Athletes.
 

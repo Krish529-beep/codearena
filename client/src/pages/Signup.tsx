@@ -68,7 +68,7 @@ const Signup = () => {
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="input-field pl-10"
+                  className="input-field"
                   placeholder="John Doe"
                   minLength={2}
                   required
@@ -84,7 +84,7 @@ const Signup = () => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="input-field pl-10"
+                  className="input-field"
                   placeholder="you@example.com"
                   required
                 />
@@ -99,7 +99,7 @@ const Signup = () => {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="input-field pl-10 pr-10"
+                  className="input-field pr-10"
                   placeholder="Min 6 characters"
                   minLength={6}
                   required
@@ -142,7 +142,7 @@ const Signup = () => {
             </div>
           </div>
 
-          <div className="flex justify-center">
+          <div className="flex justify-center w-full overflow-hidden">
             <GoogleLogin
               ux_mode="popup"
               onSuccess={async (credentialResponse) => {

@@ -55,8 +55,8 @@ const SubmissionHeatmap = ({ submissionCalendar }: HeatmapProps) => {
         <p className="text-xs text-zinc-500 font-medium uppercase tracking-wider">Last 365 days</p>
       </div>
 
-      <div className="-mx-2 overflow-x-auto px-2 pb-2">
-        <div className="flex min-w-[820px] gap-1">
+      <div className="heatmap-scroll -mx-2 px-2 pb-2">
+        <div className="flex min-w-[640px] gap-1">
           {weeks.map((week, wi) => (
             <div key={wi} className="flex flex-col gap-1">
               {week.map((day, di) => (

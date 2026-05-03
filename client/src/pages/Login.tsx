@@ -36,11 +36,7 @@ const Login = () => {
   };
 
   return (
-    <div className="gradient-hero relative flex min-h-screen items-center justify-center px-4 pb-10 pt-24 sm:px-6 lg:px-8">
-      <div className="absolute inset-0">
-        <div className="absolute top-20 right-20 w-72 h-72 bg-brand-500/15 rounded-full blur-[100px]" />
-        <div className="absolute bottom-20 left-20 w-96 h-96 bg-accent-cyan/10 rounded-full blur-[120px]" />
-      </div>
+    <div className="relative flex min-h-screen items-center justify-center px-4 pb-10 pt-24 sm:px-6 bg-zinc-950">
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -55,7 +51,7 @@ const Login = () => {
           <p className="text-gray-400">Sign in to continue your coding journey</p>
         </div>
 
-        <div className="glass-strong rounded-2xl p-6 sm:p-8">
+        <div className="card p-6 sm:p-8">
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="block text-sm text-gray-400 mb-1.5">Email</label>
@@ -65,7 +61,7 @@ const Login = () => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="input-field pl-10"
+                  className="input-field"
                   placeholder="you@example.com"
                   required
                 />
@@ -80,7 +76,7 @@ const Login = () => {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="input-field pl-10 pr-10"
+                  className="input-field pr-10"
                   placeholder="Enter your password"
                   required
                 />
@@ -122,7 +118,7 @@ const Login = () => {
             </div>
           </div>
 
-          <div className="flex justify-center">
+          <div className="flex justify-center w-full overflow-hidden">
             <GoogleLogin
               ux_mode="popup"
               onSuccess={async (credentialResponse) => {

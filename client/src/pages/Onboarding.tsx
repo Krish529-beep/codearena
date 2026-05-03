@@ -84,7 +84,7 @@ const Onboarding = () => {
                       setValidated(false);
                       setError('');
                     }}
-                    className="input-field pl-10"
+                    className="input-field"
                     placeholder="Your LeetCode username"
                     disabled={loading || validated}
                   />

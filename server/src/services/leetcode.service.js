@@ -1,33 +1,15 @@
 const axios = require('axios');
 const { cache } = require('../utils/redis');
 
-const LEETCODE_API = 'https://leetcode.com/graphql';
+const ALFA_API = 'https://alfa-leetcode-api.onrender.com';
 const CACHE_TTL = 3600;
 
-const USER_STATS_QUERY = `
-  query getUserProfile($username: String!) {
-    allQuestionsCount {
-      difficulty
-      count
-    }
-    matchedUser(username: $username) {
-      username
-      profile {
-        realName
-        ranking
-        userAvatar
-      }
-      submitStats: submitStatsGlobal {
-        acSubmissionNum {
-          difficulty
-          count
-        }
-      }
-      submissionCalendar
-    }
-  }
-`;
-
+/**
+ * Fetches LeetCode stats for a user via alfa-leetcode-api.
+ * Makes two parallel requests:
+ *   GET /:username/solved  → problem counts per difficulty
+ *   GET /:username/calendar → submission calendar & streak
+ */
 const fetchLeetCodeStats = async (username) => {
   const cacheKey = `leetcode:${username}`;
   const cached = await cache.get(cacheKey);
@@ -37,35 +19,42 @@ const fetchLeetCodeStats = async (username) => {
   }
 
   try {
-    const response = await axios.post(
-      LEETCODE_API,
-      {
-        query: USER_STATS_QUERY,
-        variables: { username },
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'Referer': 'https://leetcode.com',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        },
-        timeout: 10000,
-      }
-    );
+    const [solvedRes, calendarRes] = await Promise.all([
+      axios.get(`${ALFA_API}/${encodeURIComponent(username)}/solved`, { timeout: 15000 }),
+      axios.get(`${ALFA_API}/${encodeURIComponent(username)}/calendar`, { timeout: 15000 }),
+    ]);
 
-    const data = response.data?.data;
+    const solvedData = solvedRes.data;
+    const calendarData = calendarRes.data;
 
-    if (!data?.matchedUser) {
+    // If the API returns an error payload (e.g. { errors: [...] })
+    if (!solvedData || solvedData.errors) {
       throw new Error('User not found on LeetCode');
     }
 
-    const stats = parseStats(data);
-    await cache.set(cacheKey, JSON.stringify(stats), CACHE_TTL);
+    const stats = {
+      username,
+      profile: null,          // profile details not needed for stats
+      totalSolved:    solvedData.solvedProblem   ?? 0,
+      allTotal:       0,       // total problems on LeetCode (cosmetic, not provided by this endpoint)
+      easySolved:     solvedData.easySolved      ?? 0,
+      easyTotal:      0,
+      mediumSolved:   solvedData.mediumSolved    ?? 0,
+      mediumTotal:    0,
+      hardSolved:     solvedData.hardSolved      ?? 0,
+      hardTotal:      0,
+      // submissionCalendar is returned as a JSON string by alfa-api (same format as the old GraphQL)
+      submissionCalendar: calendarData?.submissionCalendar ?? '{}',
+    };
 
+    await cache.set(cacheKey, JSON.stringify(stats), CACHE_TTL);
     return stats;
   } catch (error) {
     if (error.message === 'User not found on LeetCode') {
       throw error;
+    }
+    if (error.response?.status === 404) {
+      throw new Error('User not found on LeetCode');
     }
     if (error.response?.status === 429) {
       throw new Error('LeetCode API rate limited. Please try again later.');
@@ -83,44 +72,6 @@ const validateUsername = async (username) => {
   }
 };
 
-const parseStats = (data) => {
-  const submissions = data.matchedUser?.submitStats?.acSubmissionNum || [];
-  const totals = data.allQuestionsCount || [];
-
-  let easySolved = 0, easyTotal = 0;
-  let mediumSolved = 0, mediumTotal = 0;
-  let hardSolved = 0, hardTotal = 0;
-  let totalSolved = 0, allTotal = 0;
-
-  submissions.forEach(item => {
-    if (item.difficulty === 'Easy') easySolved = item.count;
-    if (item.difficulty === 'Medium') mediumSolved = item.count;
-    if (item.difficulty === 'Hard') hardSolved = item.count;
-    if (item.difficulty === 'All') totalSolved = item.count;
-  });
-
-  totals.forEach(item => {
-    if (item.difficulty === 'Easy') easyTotal = item.count;
-    if (item.difficulty === 'Medium') mediumTotal = item.count;
-    if (item.difficulty === 'Hard') hardTotal = item.count;
-    if (item.difficulty === 'All') allTotal = item.count;
-  });
-
-  return {
-    username: data.matchedUser?.username,
-    profile: data.matchedUser?.profile,
-    totalSolved,
-    allTotal,
-    easySolved,
-    easyTotal,
-    mediumSolved,
-    mediumTotal,
-    hardSolved,
-    hardTotal,
-    submissionCalendar: data.matchedUser?.submissionCalendar || '{}',
-  };
-};
-
 const invalidateCache = async (username) => {
   await cache.del(`leetcode:${username}`);
 };
@@ -130,3 +81,4 @@ module.exports = {
   validateUsername,
   invalidateCache,
 };
+

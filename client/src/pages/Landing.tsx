@@ -57,7 +57,7 @@ const Landing = () => {
               <span>GAMIFIED LEETCODE TRACKING</span>
             </div>
 
-            <h1 className="text-5xl md:text-7xl font-extrabold mb-6 leading-tight tracking-tighter text-white">
+            <h1 className="text-4xl sm:text-5xl md:text-7xl font-extrabold mb-6 leading-tight tracking-tighter text-white">
               Level Up Your
               <br />
               <span className="text-zinc-500">Coding Journey</span>
@@ -89,9 +89,9 @@ const Landing = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.6 }}
-            className="mt-20 card p-8 max-w-3xl mx-auto"
+            className="mt-16 card p-6 sm:p-8 max-w-3xl mx-auto"
           >
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 divide-y sm:divide-y-0 sm:divide-x divide-zinc-800">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 divide-y sm:divide-y-0 sm:divide-x divide-zinc-800">
               {[
                 { label: 'Problems Solved', value: '10K+' },
                 { label: 'Active Groups', value: '500+' },

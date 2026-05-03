@@ -10,11 +10,20 @@
   --color-gold: #fbbf24;
   --color-silver: #9ca3af;
   --color-bronze: #b45309;
+
+  /* Brand palette used in leaderboard / misc components */
+  --color-brand-300: #a78bfa;
+  --color-brand-400: #8b5cf6;
+  --color-brand-500: #7c3aed;
+  --color-accent-cyan: #22d3ee;
 }
 
 html {
   scroll-behavior: smooth;
   min-width: 320px;
+  /* Prevent font-size inflation on mobile */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
@@ -47,14 +56,34 @@ body {
   background: #52525b;
 }
 
-/* Base Card Style */
+/* ─── Base Card ──────────────────────────────── */
 .card {
   background: #18181b; /* Zinc 900 */
   border: 1px solid #27272a; /* Zinc 800 */
   border-radius: 0.75rem;
 }
 
-/* Minimal Buttons */
+/* ─── Glass variants (used in Login / Leaderboard) ─── */
+.glass {
+  background: rgba(24, 24, 27, 0.8);
+  border: 1px solid #27272a;
+  border-radius: 0.75rem;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.glass-strong {
+  background: #18181b;
+  border: 1px solid #27272a;
+  border-radius: 1rem;
+}
+
+/* ─── Gradient hero bg (used in Login) ──────── */
+.gradient-hero {
+  background: #09090b;
+}
+
+/* ─── Minimal Buttons ────────────────────────── */
 .btn-primary {
   background: #ffffff;
   color: #000000;
@@ -68,6 +97,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  /* Mobile: prevent tiny tap targets */
+  min-height: 44px;
+  touch-action: manipulation;
 }
 
 .btn-primary:hover {
@@ -93,24 +125,29 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  min-height: 44px;
+  touch-action: manipulation;
 }
 
 .btn-secondary:hover {
   background: #27272a;
 }
 
-/* Inputs */
+/* ─── Inputs ─────────────────────────────────── */
 .input-field {
   background: #18181b;
   border: 1px solid #3f3f46;
   color: #f4f4f5;
   padding: 0.75rem 1rem;
   border-radius: 0.5rem;
-  font-size: 0.95rem;
+  font-size: 1rem; /* 16px prevents iOS zoom on focus */
   width: 100%;
   transition: all 0.2s ease;
   outline: none;
   font-family: inherit;
+  /* Mobile: prevent double-tap zoom */
+  touch-action: manipulation;
+  min-height: 44px;
 }
 
 .input-field:focus {
@@ -127,7 +164,7 @@ textarea.input-field {
   appearance: none;
 }
 
-/* Layout Shells */
+/* ─── Layout Shells ──────────────────────────── */
 .page-shell {
   width: 100%;
   max-width: 96rem;
@@ -146,7 +183,7 @@ textarea.input-field {
   margin-inline: auto;
 }
 
-/* Stats specific */
+/* ─── Stats ──────────────────────────────────── */
 .stat-card {
   border-radius: 0.75rem;
   padding: 1.5rem;
@@ -159,17 +196,43 @@ textarea.input-field {
   border-color: #3f3f46;
 }
 
+/* ─── Rank colours ───────────────────────────── */
 .rank-gold {
   background: rgba(251, 191, 36, 0.1);
   border: 1px solid rgba(251, 191, 36, 0.3);
+  border-radius: 0.75rem;
 }
 
 .rank-silver {
   background: rgba(156, 163, 175, 0.1);
   border: 1px solid rgba(156, 163, 175, 0.3);
+  border-radius: 0.75rem;
 }
 
 .rank-bronze {
   background: rgba(180, 83, 9, 0.1);
   border: 1px solid rgba(180, 83, 9, 0.3);
+  border-radius: 0.75rem;
 }
+
+/* ─── Colour-scheme for date inputs ─────────── */
+.color-scheme-dark {
+  color-scheme: dark;
+}
+
+/* ─── Mobile: safe-area insets for notch devices ─── */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* ─── Responsive heatmap container ──────────── */
+.heatmap-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  /* hide scrollbar but keep functionality */
+  scrollbar-width: thin;
+  scrollbar-color: #3f3f46 transparent;
+}
+
