@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Trophy, Crown, Medal } from 'lucide-react';
+import { Crown, Medal } from 'lucide-react';
 import type { LeaderboardEntry } from '@/types';
 
 interface LeaderboardTableProps {
@@ -68,9 +68,9 @@ const LeaderboardTable = ({ entries, currentUserId, sortBy }: LeaderboardTablePr
               <div className="grid grid-cols-3 gap-3 sm:ml-auto sm:min-w-[260px]">
                 <div className="text-left sm:text-right">
                   <p className={`text-sm font-bold ${sortBy === 'solved' ? 'text-cyan-400' : 'text-zinc-300'}`}>
-                    {entry.solvedInGroup > 0 ? `+${entry.solvedInGroup}` : entry.totalSolved}
+                    +{entry.solvedInGroup}
                   </p>
-                  <p className="text-xs text-zinc-500">{entry.solvedInGroup > 0 ? 'In Group' : 'Solved'}</p>
+                  <p className="text-xs text-zinc-500">Solved ({entry.totalSolved} total)</p>
                 </div>
                 <div className="text-left sm:text-right">
                   {entry.progress > 0 ? (
@@ -86,9 +86,9 @@ const LeaderboardTable = ({ entries, currentUserId, sortBy }: LeaderboardTablePr
                   ) : (
                     <>
                       <p className={`text-sm font-bold ${sortBy === 'points' ? 'text-purple-300' : 'text-zinc-300'}`}>
-                        {entry.pointsInGroup > 0 ? `+${entry.pointsInGroup}` : entry.totalPoints}
+                        +{entry.pointsInGroup}
                       </p>
-                      <p className="text-xs text-zinc-500">{entry.pointsInGroup > 0 ? 'In Group' : 'Points'}</p>
+                      <p className="text-xs text-zinc-500">Points ({entry.totalPoints} total)</p>
                     </>
                   )}
                 </div>
@@ -106,4 +106,3 @@ const LeaderboardTable = ({ entries, currentUserId, sortBy }: LeaderboardTablePr
 };
 
 export default LeaderboardTable;
-

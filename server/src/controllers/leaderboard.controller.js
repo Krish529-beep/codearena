@@ -48,14 +48,17 @@ const getGroupLeaderboard = async (req, res) => {
         };
       });
 
+    // Always sort by in-group delta, not lifetime totals
     if (sortBy === 'solved') {
-      leaderboard.sort((a, b) => b.totalSolved - a.totalSolved);
-    } else if (isChallengeActive || sortBy === 'progress' || sortBy === 'points') {
-      // Default sort by progress/pointsInGroup if challenge is active
-      const sortField = sortBy === 'solved' ? 'solvedInGroup' : 'pointsInGroup';
-      leaderboard.sort((a, b) => b[sortField] - a[sortField] || b.progress - a.progress);
+      leaderboard.sort((a, b) => b.solvedInGroup - a.solvedInGroup || b.pointsInGroup - a.pointsInGroup);
     } else {
-      leaderboard.sort((a, b) => b.totalPoints - a.totalPoints);
+      // default: 'points'
+      leaderboard.sort((a, b) => b.pointsInGroup - a.pointsInGroup || b.solvedInGroup - a.solvedInGroup);
+    }
+
+    // Secondary sort: progress toward challenge target (if active)
+    if (isChallengeActive) {
+      leaderboard.sort((a, b) => b.progress - a.progress || b.solvedInGroup - a.solvedInGroup);
     }
 
     leaderboard = leaderboard.map((entry, index) => ({

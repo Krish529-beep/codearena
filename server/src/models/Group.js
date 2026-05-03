@@ -50,6 +50,12 @@ const groupSchema = new mongoose.Schema({
     type: Number,
     default: 50,
   },
+  challengeSettings: {
+    isActive: { type: Boolean, default: false },
+    target: { type: Number, default: 0 },
+    startDate: { type: Date, default: null },
+    endDate: { type: Date, default: null },
+  },
 }, {
   timestamps: true,
 });
