@@ -70,12 +70,6 @@ const SkillAnalysis = ({ stats }: SkillAnalysisProps) => {
                     <Tooltip
                       contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '8px' }}
                       itemStyle={{ color: '#fff' }}
-                      formatter={(val: number | string | undefined, name: string) => {
-                        const count = typeof val === 'number' ? val : Number(val ?? 0);
-                        return name === item.name
-                          ? [`${count} solved`, item.name]
-                          : [`${count}`, 'Other'];
-                      }}
                     />
                   </PieChart>
                 </ResponsiveContainer>
