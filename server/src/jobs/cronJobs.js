@@ -5,11 +5,11 @@ const { computePoints } = require('../services/points.service');
 const { computeStreak } = require('../services/streak.service');
 
 const startCronJobs = (io) => {
-  const intervalHours = parseInt(process.env.LEETCODE_SYNC_INTERVAL_HOURS) || 4;
-  const cronExpression = `0 */${intervalHours} * * *`;
+  // Sync all users once every day at midnight (00:00)
+  const cronExpression = '0 0 * * *';
 
   cron.schedule(cronExpression, async () => {
-    console.log('⏰ Running scheduled LeetCode sync...');
+    console.log('⏰ Running midnight LeetCode sync...');
 
     try {
       const users = await User.find({
@@ -68,7 +68,7 @@ const startCronJobs = (io) => {
     }
   });
 
-  console.log(`⏰ Cron job scheduled: every ${intervalHours} hours`);
+  console.log('⏰ Cron job scheduled: daily at midnight (00:00)');
 };
 
 module.exports = { startCronJobs };

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
@@ -13,18 +13,11 @@ import {
 import { Link } from 'react-router-dom';
 import type { Group } from '@/types';
 
-const AUTO_SYNC_MS = 5 * 60 * 1000; // 5 minutes
-
 const Dashboard = () => {
   const { user, refreshUser } = useAuth();
   const [syncing, setSyncing] = useState(false);
   const [groups, setGroups] = useState<Group[]>([]);
   const [fullUser, setFullUser] = useState<any>(null);
-  // Countdown: seconds remaining until next auto-sync
-  const [countdown, setCountdown] = useState(AUTO_SYNC_MS / 1000);
-
-  const syncIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     loadData();
@@ -43,8 +36,7 @@ const Dashboard = () => {
     }
   };
 
-  const performSync = useCallback(async () => {
-    if (syncing) return;
+  const handleSync = async () => {
     setSyncing(true);
     try {
       const { data } = await api.post('/users/me/sync');
@@ -55,43 +47,6 @@ const Dashboard = () => {
     } finally {
       setSyncing(false);
     }
-  }, [syncing, refreshUser]);
-
-  /** Reset both auto-sync timer and countdown display */
-  const resetAutoSync = useCallback(() => {
-    // Clear existing timers
-    if (syncIntervalRef.current) clearInterval(syncIntervalRef.current);
-    if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
-
-    setCountdown(AUTO_SYNC_MS / 1000);
-
-    // Countdown ticker — fires every second
-    countdownIntervalRef.current = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) return AUTO_SYNC_MS / 1000; // will be reset by sync firing
-        return prev - 1;
-      });
-    }, 1000);
-
-    // Auto-sync ticker — fires every 5 min
-    syncIntervalRef.current = setInterval(async () => {
-      setCountdown(AUTO_SYNC_MS / 1000); // reset visual before sync
-      await performSync();
-    }, AUTO_SYNC_MS);
-  }, [performSync]);
-
-  // Start auto-sync on mount, clean up on unmount
-  useEffect(() => {
-    resetAutoSync();
-    return () => {
-      if (syncIntervalRef.current) clearInterval(syncIntervalRef.current);
-      if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
-    };
-  }, [resetAutoSync]);
-
-  const handleManualSync = async () => {
-    await performSync();
-    resetAutoSync(); // Reset the 5-min timer after a manual sync
   };
 
   const stats = fullUser?.stats || user?.stats || {
@@ -108,11 +63,6 @@ const Dashboard = () => {
 
   const streak = fullUser?.streak || user?.streak || { current: 0, longest: 0 };
   const calendar = fullUser?.submissionCalendar || user?.submissionCalendar || '{}';
-
-  // Format countdown as MM:SS
-  const mins = Math.floor(countdown / 60).toString().padStart(2, '0');
-  const secs = (countdown % 60).toString().padStart(2, '0');
-  const progress = ((AUTO_SYNC_MS / 1000 - countdown) / (AUTO_SYNC_MS / 1000)) * 100;
 
   return (
     <div className="min-h-screen px-4 pb-10 pt-24 sm:px-6 lg:px-8 bg-zinc-950">
@@ -133,44 +83,17 @@ const Dashboard = () => {
             </p>
           </div>
 
-          {/* Sync button with auto-sync countdown ring */}
           <button
-            onClick={handleManualSync}
+            onClick={handleSync}
             disabled={syncing}
-            title={syncing ? 'Syncing…' : `Auto-syncs in ${mins}:${secs}`}
-            className="btn-secondary flex w-full items-center justify-center gap-2.5 sm:w-auto bg-zinc-900 border-zinc-800 hover:bg-zinc-800 relative"
+            className="btn-secondary flex w-full items-center justify-center gap-2 sm:w-auto bg-zinc-900 border-zinc-800 hover:bg-zinc-800"
           >
             {syncing ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
-              /* Countdown ring wrapping the icon */
-              <span className="relative flex h-5 w-5 items-center justify-center">
-                <svg
-                  className="absolute inset-0 -rotate-90"
-                  viewBox="0 0 20 20"
-                  width="20"
-                  height="20"
-                >
-                  {/* track */}
-                  <circle cx="10" cy="10" r="8" fill="none" stroke="#3f3f46" strokeWidth="2" />
-                  {/* progress */}
-                  <circle
-                    cx="10"
-                    cy="10"
-                    r="8"
-                    fill="none"
-                    stroke="#ffffff"
-                    strokeWidth="2"
-                    strokeDasharray={`${2 * Math.PI * 8}`}
-                    strokeDashoffset={`${2 * Math.PI * 8 * (1 - progress / 100)}`}
-                    strokeLinecap="round"
-                    style={{ transition: 'stroke-dashoffset 1s linear' }}
-                  />
-                </svg>
-                <RefreshCw className="h-3 w-3 text-white relative z-10" />
-              </span>
+              <RefreshCw className="h-4 w-4" />
             )}
-            <span>{syncing ? 'Syncing…' : `Sync Now · ${mins}:${secs}`}</span>
+            {syncing ? 'Syncing…' : 'Sync Now'}
           </button>
         </motion.div>
 
