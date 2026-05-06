@@ -85,31 +85,6 @@ const Landing = () => {
             </div>
           </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4, duration: 0.6 }}
-            className="mt-16 card p-6 sm:p-8 max-w-3xl mx-auto"
-          >
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 divide-y sm:divide-y-0 sm:divide-x divide-zinc-800">
-              {[
-                { label: 'Problems Solved', value: '10K+' },
-                { label: 'Active Groups', value: '500+' },
-                { label: 'Daily Streaks', value: '2K+' },
-              ].map((stat, i) => (
-                <motion.div
-                  key={stat.label}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.6 + i * 0.1 }}
-                  className={`text-center ${i !== 0 ? 'pt-8 sm:pt-0' : ''}`}
-                >
-                  <p className="text-3xl md:text-4xl font-bold text-white tracking-tight">{stat.value}</p>
-                  <p className="text-sm text-zinc-500 mt-2 font-medium">{stat.label}</p>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
         </div>
       </section>
 
